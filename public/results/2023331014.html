@@ -1,11 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - MessMate</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f4f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .profile-container {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 350px;
+    }
+
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 20px;
+      border: 2px solid #007bff;
+    }
+
+    .profile-name {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .profile-info {
+      font-size: 18px;
+      margin: 10px 0;
+    }
+  </style>
 </head>
 <body>
-    <h1>hello how are you??</h1>
+  <div class="profile-container">
+    <!-- Static parts -->
+    <img class="profile-avatar" src="20240709_191102 - Copy.jpg" alt="Avatar">
+    <div class="profile-name">Soumyo Sarkar</div>
+
+    <!-- Dynamic parts -->
+    <div class="profile-info">Balance: <span id="balance">Loading...</span> BDT</div>
+    <div class="profile-info">Cost: <span id="cost">Loading...</span> BDT</div>
+  </div>
+
+  <script>
+    // Assuming the page is named username.html
+    const pathParts = window.location.pathname.split('/');
+    const username = pathParts[pathParts.length - 1].replace('.html', '');
+
+    // Fetch only balance and cost
+    fetch(`/profile/${username}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
+
+        document.getElementById('balance').textContent = data.balance;
+        document.getElementById('cost').textContent = data.cost;
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Failed to fetch balance and cost');
+      });
+  </script>
 </body>
 </html>
