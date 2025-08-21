@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import bodyParser from "body-parser";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import connectDB from "./db.js";
 import User from "./models/User.js";
@@ -12,18 +14,52 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 app.use(bodyParser.json());
 
 // Connect to MongoDB
 connectDB();
 
-// Login route
-// server.js (add to existing server)
-// server.js
+// Setup __dirname (for ES module)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Middleware to get user data by username (simple example, in production use auth tokens)
+// Serve static files from "public" folder
+app.use(express.static(path.join(__dirname, "public")));
+
+// Serve login.html as default
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
+// Login route
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    if (user.password !== password) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+
+    // Login successful
+    return res.json({
+      success: true,
+      redirect: `/results/${user.username}.html`, // user-specific page
+    });
+  } catch (err) {
+    console.error("Server error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Profile route
 app.get("/profile/:username", async (req, res) => {
   const { username } = req.params;
 
@@ -46,8 +82,7 @@ app.get("/profile/:username", async (req, res) => {
   }
 });
 
-
-
+// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
