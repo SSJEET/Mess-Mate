@@ -31,7 +31,7 @@
       const password = document.getElementById('password').value;
 
       try {
-        const res = await fetch('https://mess-mate-1.onrender.com/login', {
+        const res = await fetch('https://mess-mate-ith4.onrender.com/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
@@ -41,7 +41,7 @@
 
         if (data.success) {
           // Redirect to username-specific HTML
-          window.location.href = `https://mess-mate-1.onrender.com/results/${username}.html`;
+          window.location.href = `https://mess-mate-ith4.onrender.com/results/${username}.html`;
         } else {
           alert(data.error || "Invalid username or password");
         }
