@@ -54,13 +54,17 @@
     <div class="profile-info">Balance: <span id="balance">Loading...</span> BDT</div>
     <div class="profile-info">Cost: <span id="cost">Loading...</span> BDT</div>
   </div>
+<div class="profile-info">Debt: <span id="debt">Loading...</span> BDT</div>
 
-  <script>
-    // Assuming the page is named username.html
-    const pathParts = window.location.pathname.split('/');
-    const username = pathParts[pathParts.length - 1].replace('.html', '');
+<script src="calculate_debt.js"></script>
+<script>
+  // Extract username from URL
+  const pathParts = window.location.pathname.split('/');
+  const username = pathParts[pathParts.length - 1].replace('.html','');
 
-    // Fetch only balance and cost
+  // Wait for WebAssembly to initialize
+  Module.onRuntimeInitialized = () => {
+    // Fetch balance and cost from backend
     fetch(`/profile/${username}`)
       .then(res => res.json())
       .then(data => {
@@ -69,13 +73,29 @@
           return;
         }
 
-        document.getElementById('balance').textContent = data.balance;
-        document.getElementById('cost').textContent = data.cost;
+        const balance = data.balance;
+        const cost = data.cost;
+
+        // Update balance and cost in HTML
+        document.getElementById('balance').textContent = balance;
+        document.getElementById('cost').textContent = cost;
+
+        // Calculate debt using WebAssembly
+        const debt = Module.ccall(
+          'calculate',        // C function name
+          'number',           // return type
+          ['number','number'], // argument types
+          [balance, cost]     // arguments
+        );
+
+        document.getElementById('debt').textContent = debt.toFixed(2);
       })
       .catch(err => {
         console.error(err);
-        alert('Failed to fetch balance and cost');
+        alert('Failed to fetch data');
       });
-  </script>
+  };
+</script>
+
 </body>
 </html>
