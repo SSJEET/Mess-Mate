@@ -54,6 +54,7 @@
     <p>Cost: $<span id="cost">0</span></p>
     <button id="logoutBtn">Logout</button>
   </div>
+<script src="calculate.js"></script>
 
   <script>
     // Example: store logged in username in localStorage after login
@@ -75,7 +76,12 @@
             document.getElementById("balance").innerText = data.balance;
             document.getElementById("cost").innerText = data.cost;
           }
-        })
+           // Wait for WASM to initialize
+            Module.onRuntimeInitialized = () => {
+              const calculate = Module.cwrap('calculate', 'number', ['number', 'number']);
+              const remaining = calculate(data.balance, data.cost);
+              document.getElementById("remaining").innerText = remaining;
+        }})
         .catch(err => {
           console.error(err);
           alert("Server error");

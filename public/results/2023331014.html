@@ -3,97 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile - MessMate</title>
+  <title>MessMate Profile</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f0f4f8;
+      background: #f0f4f8;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
     }
-
     .profile-container {
       background: #fff;
-      padding: 30px;
+      padding: 40px;
       border-radius: 10px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-      text-align: center;
       width: 350px;
+      text-align: center;
     }
-
-    .profile-avatar {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 20px;
-      border: 2px solid #007bff;
-    }
-
-    .profile-name {
-      font-size: 24px;
-      font-weight: bold;
+    .profile-container h2 {
       margin-bottom: 20px;
     }
-
-    .profile-info {
+    .profile-container p {
       font-size: 18px;
       margin: 10px 0;
+    }
+    .profile-container button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    .profile-container button:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      font-size: 18px;
+      color: green;
+      margin-top: 15px;
     }
   </style>
 </head>
 <body>
   <div class="profile-container">
-    <!-- Static info -->
-    <img class="profile-avatar" src="20240709_191102 - Copy.jpg" alt="Avatar">
-    <div class="profile-name">Soumyo Sarkar</div>
-
-    <!-- Dynamic info -->
-    <div class="profile-info">Balance: <span id="balance">Loading...</span> BDT</div>
-    <div class="profile-info">Cost: <span id="cost">Loading...</span> BDT</div>
-    <div class="profile-info">Debt: <span id="debt">Loading...</span> BDT</div>
+    <h2 id="username">Welcome</h2>
+    <p>Balance: $<span id="balance">0</span></p>
+    <p>Cost: $<span id="cost">0</span></p>
+    <p class="result">Remaining: $<span id="remaining">0</span></p>
+    <button id="logoutBtn">Logout</button>
   </div>
 
-  <!-- Include WebAssembly-generated JS -->
-  <script src="/calculate_debt.js"></script>
+  <!-- Load WASM-generated JS -->
+  <script src="calculate.js"></script>
+
   <script>
-    // Extract username from URL (e.g., /results/username.html)
-    const pathParts = window.location.pathname.split('/');
-    const username = pathParts[pathParts.length - 1].replace('.html','');
+    const username = localStorage.getItem("loggedInUser");
 
-    // Fetch balance and cost from backend first
-    fetch(`/profile/${username}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          alert(data.error);
-          return;
-        }
+    if (!username) {
+      alert("Please login first");
+      window.location.href = "login.html";
+    } else {
+      fetch(`http://localhost:5000/profile/${username}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            alert(data.error);
+            window.location.href = "login.html";
+          } else {
+            document.getElementById("username").innerText = `Welcome, ${data.username}`;
+            document.getElementById("balance").innerText = data.balance;
+            document.getElementById("cost").innerText = data.cost;
 
-        const balance = data.balance;
-        const cost = data.cost;
-
-        // Update HTML
-        document.getElementById('balance').textContent = balance;
-        document.getElementById('cost').textContent = cost;
-
-        // Wait for WebAssembly to initialize
-        createCalculateDebtModule().then(Module => {
-          const debt = Module.ccall(
-            'calculate',        // C function name
-            'number',           // return type
-            ['number','number'], // argument types
-            [balance, cost]     // arguments
-          );
-          document.getElementById('debt').textContent = debt.toFixed(2);
+            // Wait for WASM to initialize
+            Module.onRuntimeInitialized = () => {
+              const calculate = Module.cwrap('calculate', 'number', ['number', 'number']);
+              const remaining = calculate(data.balance, data.cost);
+              document.getElementById("remaining").innerText = remaining;
+            };
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          alert("Server error");
         });
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Failed to fetch data');
-      });
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("loggedInUser");
+      window.location.href = "login.html";
+    });
   </script>
 </body>
 </html>
