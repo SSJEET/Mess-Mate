@@ -71,7 +71,7 @@
         .then(data => {
           if (data.error) {
             alert(data.error);
-            window.location.href = "login.html";
+            window.location.href = "../login.html";
           } else {
             document.getElementById("username").innerText = `Welcome, ${data.username}`;
             document.getElementById("balance").innerText = data.balance;
@@ -93,7 +93,7 @@
 
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("loggedInUser");
-      window.location.href = "login.html";
+      window.location.href = ",login.html";
     });
   </script>
 </body>

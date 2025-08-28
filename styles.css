@@ -358,3 +358,17 @@ footer {
   margin-top: 2rem;
   border-top: 1px solid rgba(255,255,255,0.1);
 }
+
+.dashboard-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;  /* centers all cards */
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.card {
+  flex: 1 1 300px;
+  max-width: 350px;
+}
